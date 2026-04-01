@@ -6,6 +6,7 @@ authors = [{ name = "Claudiu Belu", email = "cbelu@cloudbasesolutions.com" }]
 readme = "README.md"
 keywords = ['python']
 requires-python = ">=3.10,<4.0"
+dependencies = ["fixtures"]
 classifiers = [
     "Intended Audience :: Developers",
     "Programming Language :: Python",
@@ -26,10 +27,12 @@ Documentation = "https://claudiubelu.github.io/mockey/"
 [dependency-groups]
 dev = [
     "pytest>=9.0.2",
+    "pytest-cov>=6.0.0",
     "pre-commit>=4.5.1",
     "tox-uv>=1.33.4",
     "mypy>=1.19.1",
     "ruff>=0.15.6",
+    "testtools>=2.7.2",
 ]
 
 [build-system]
