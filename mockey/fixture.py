@@ -69,6 +69,11 @@ class _AutospecMockMixin:
         if autospec:
             self.return_value.__dict__["_autospec"] = autospec
 
+        # Enforce the constructor signature when the mock itself is called
+        # (e.g.: MyClass(wrong_args) should raise TypeError).
+        if autospec and isinstance(autospec, type):
+            _lazy_autospec_method(self, autospec.__init__, eat_self=True)
+
     def __getattr__(self, name: str) -> Any:
         attr = super().__getattr__(name)  # type: ignore[misc]
 

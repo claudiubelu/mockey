@@ -40,6 +40,14 @@ class Foo:
         pass
 
 
+class _ClassWithInit:
+    def __init__(self, x: int, y: int) -> None:
+        pass
+
+    def method(self, z: str) -> None:
+        pass
+
+
 class MockSanityTestCase(testtools.TestCase):
     def setUp(self):
         super().setUp()
@@ -163,6 +171,23 @@ class MockSanityTestCase(testtools.TestCase):
                 unittest.mock.InvalidSpecError,
                 patcher.start,
             )
+
+    def test_constructor_autospec(self):
+        # Correct usage.
+        m = mock.Mock(autospec=_ClassWithInit)
+        m(1, 2)
+
+        # Too many arguments.
+        m = mock.Mock(autospec=_ClassWithInit)
+        self.assertRaises(TypeError, m, 1, 2, 3)
+
+        # Missing arguments.
+        m = mock.Mock(autospec=_ClassWithInit)
+        self.assertRaises(TypeError, m, 1)
+
+        # Unknown kwargs.
+        m = mock.Mock(autospec=_ClassWithInit)
+        self.assertRaises(TypeError, m, x=1, y=2, z=99)
 
 
 class MockFixtureLifecycleTestCase(testtools.TestCase):
