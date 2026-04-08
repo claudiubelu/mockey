@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import functools
+import typing
 from typing import TYPE_CHECKING, Any, TypeVar
 from unittest import mock
 
@@ -47,6 +48,22 @@ def _lazy_autospec_method(
     # called.
     _autospeced.__dict__["autospeced"] = True
     mocked_method._mock_check_sig = _autospeced
+
+    # If the method declares a concrete return type, autospec the return value,
+    # so that attribute access and method signatures are enforced on it too.
+    try:
+        hints = typing.get_type_hints(original_method)
+    except Exception:
+        hints = {}
+
+    return_type = hints.get("return")
+
+    if return_type is type(None):
+        mocked_method.return_value = None
+    elif isinstance(return_type, type):
+        rv: Any = _AutospecMagicMock()
+        rv.__dict__["_autospec"] = return_type
+        mocked_method.return_value = rv
 
 
 class _AutospecMockMixin:

@@ -48,6 +48,14 @@ class _ClassWithInit:
         pass
 
 
+class _ClassReturningThing:
+    def get_the_thing(self) -> Foo:
+        return Foo()
+
+    def get_none(self) -> None:
+        pass
+
+
 class MockSanityTestCase(testtools.TestCase):
     def setUp(self):
         super().setUp()
@@ -129,6 +137,23 @@ class MockSanityTestCase(testtools.TestCase):
             mock.patch.object(foo, "classic_bar"),
             mock.patch.object(foo, "static_bar"),
         ):
+            self._check_autospeced_foo(foo)
+
+    def test_return_value_is_autospecced(self):
+        m = mock.Mock(autospec=_ClassReturningThing)
+        foo = m().get_the_thing()
+        self._check_autospeced_foo(foo)
+
+    def test_return_type_none(self):
+        # -> None should make the mock return None, reflecting the type hint.
+        m = mock.Mock(autospec=_ClassReturningThing)
+        result = m().get_none()
+        self.assertIsNone(result)
+
+    def test_patch_return_value_is_autospecced(self):
+        thing_returner = _ClassReturningThing()
+        with mock.patch.object(thing_returner, "get_the_thing"):
+            foo = thing_returner.get_the_thing()
             self._check_autospeced_foo(foo)
 
     @mock.patch.object(Foo, "static_bar", autospec=False)
