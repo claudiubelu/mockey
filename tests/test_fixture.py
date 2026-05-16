@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import unittest
 from unittest import mock
 
 import testtools
@@ -111,6 +112,17 @@ class MockSanityTestCase(testtools.TestCase):
             foo = Foo()
             self._check_autospeced_foo(foo)
 
+    def test_patch_autospec_instance(self):
+        # Patching on an instance (eat_self=False) is a distinct code path
+        # from patching on the class (eat_self=True).
+        foo = Foo()
+        with (
+            mock.patch.object(foo, "bar"),
+            mock.patch.object(foo, "classic_bar"),
+            mock.patch.object(foo, "static_bar"),
+        ):
+            self._check_autospeced_foo(foo)
+
     @mock.patch.object(Foo, "static_bar", autospec=False)
     @mock.patch.object(Foo, "classic_bar", autospec=False)
     @mock.patch.object(Foo, "bar", autospec=False)
@@ -130,3 +142,41 @@ class MockSanityTestCase(testtools.TestCase):
 
         foo.lish()  # type: ignore[attr-defined]
         mock_lish.assert_called_once_with()
+
+    def test_patch_with_explicit_new_skips_autospec(self):
+        replacement = mock.Mock()
+        with mock.patch.object(Foo, "bar", new=replacement):
+            Foo().bar()  # type: ignore[call-arg]
+            replacement.assert_called_once_with()
+
+    def test_patch_already_mocked_target(self):
+        with mock.patch.object(Foo, "bar"):
+            patcher = mock.patch.object(Foo, "bar")
+            self.assertRaises(
+                unittest.mock.InvalidSpecError,
+                patcher.start,
+            )
+
+            foo = Foo()
+            patcher = mock.patch.object(foo, "bar")
+            self.assertRaises(
+                unittest.mock.InvalidSpecError,
+                patcher.start,
+            )
+
+
+class MockFixtureLifecycleTestCase(testtools.TestCase):
+    """Tests that must run without MockAutospecFixture active."""
+
+    def test_mock_classes_restored_after_fixture(self):
+        original_mock = mock.Mock
+        original_magic_mock = mock.MagicMock
+        fixture = MockAutospecFixture()
+
+        fixture.setUp()
+        self.assertIsNot(mock.Mock, original_mock)
+        self.assertIsNot(mock.MagicMock, original_magic_mock)
+
+        fixture.cleanUp()
+        self.assertIs(mock.Mock, original_mock)
+        self.assertIs(mock.MagicMock, original_magic_mock)
