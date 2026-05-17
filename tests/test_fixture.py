@@ -20,40 +20,13 @@ import testtools
 
 from mockey.fixture import MockAutospecFixture, patch_mock_module
 
+from .utils import Foo, _ClassReturningThing, _ClassWithInit
+
 # NOTE: this needs to be called before any mock.patch calls are
 # being done, and especially before the test class loads. This fixes
 # the mock.patch autospec issue:
 # https://github.com/testing-cabal/mock/issues/396
 patch_mock_module()
-
-
-class Foo:
-    def bar(self, a, b, c, d=None):
-        pass
-
-    @classmethod
-    def classic_bar(cls, a, b, c, d=None):
-        pass
-
-    @staticmethod
-    def static_bar(a, b, c, d=None):
-        pass
-
-
-class _ClassWithInit:
-    def __init__(self, x: int, y: int) -> None:
-        pass
-
-    def method(self, z: str) -> None:
-        pass
-
-
-class _ClassReturningThing:
-    def get_the_thing(self) -> Foo:
-        return Foo()
-
-    def get_none(self) -> None:
-        pass
 
 
 class MockSanityTestCase(testtools.TestCase):
