@@ -149,6 +149,17 @@ class MockIssuesExistTestCase(testtools.TestCase):
             foo = thing_returner.get_the_thing()
             self._check_foo_issues(foo)
 
+    def test_patch_return_type_none_not_enforced(self):
+        # Even with explicit autospec=True on a patch, the return value is not
+        # enforced per the method's -> None return-type hint.
+        thing_returner = _ClassReturningThing()
+        with (
+            self._restored_patch(),
+            mock.patch.object(thing_returner, "get_none", autospec=True),
+        ):
+            result = thing_returner.get_none()
+            self.assertIsNotNone(result)
+
     def test_patch_already_mocked_target(self):
         with self._restored_patch(), mock.patch.object(Foo, "bar"):
             # Patching an already patched object should raise an exception,

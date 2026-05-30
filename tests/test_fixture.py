@@ -129,6 +129,13 @@ class MockSanityTestCase(testtools.TestCase):
             foo = thing_returner.get_the_thing()
             self._check_autospeced_foo(foo)
 
+    def test_patch_return_type_none(self):
+        # -> None should make the mock return None, reflecting the type hint.
+        thing_returner = _ClassReturningThing()
+        with mock.patch.object(thing_returner, "get_none"):
+            result = thing_returner.get_none()
+            self.assertIsNone(result)
+
     @mock.patch.object(Foo, "static_bar", autospec=False)
     @mock.patch.object(Foo, "classic_bar", autospec=False)
     @mock.patch.object(Foo, "bar", autospec=False)
